@@ -1,0 +1,25 @@
+{
+  "name": "back-end",
+  "version": "1.0.0",
+  "description": "BAckend for smart-brain App",
+  "main": "script.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shazil2154/Smart-Brain.git"
+  },
+  "author": "Shazil Sattar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shazil2154/Smart-Brain/issues"
+  },
+  "homepage": "https://github.com/Shazil2154/Smart-Brain#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7"
+  }
+}
