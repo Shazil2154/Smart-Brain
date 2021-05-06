@@ -1,13 +1,13 @@
-const Rank = ()=>{
+const Rank = ({name, entries})=>{
     return(
         <div>
             <div className="white f3">
-                Shazil, Your current rank is....
+                {`${name}, Your current entries are....`}
             </div>
             <div className='white f1'>
-                #5
+                {entries}
             </div>
         </div>
     );
 }
-export default Rank;
+export default Rank; 

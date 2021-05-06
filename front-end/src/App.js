@@ -34,8 +34,27 @@ class App extends Component {
       box:{},
       route: 'signin',
       isSignedIn: false,
+      user:{
+        id: "",
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
     }
   }
+
+ loadUser = (data) => {
+   this.setState({
+     user:{
+       id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+     }}
+   )
+ }
   faceLocator = (data) => {
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
     const img = document.getElementById('inputImg');
@@ -56,9 +75,9 @@ class App extends Component {
     })
   }
   onRouteChange = (route) => {
-    if(this.state.route === 'signout'){
+    if(route === 'signout'){
       this.setState({isSignedIn: false})
-    }else if(this.state.route === 'home'){
+    }else if(route === 'home'){
       this.setState({isSignedIn: true})
     }
     this.setState({route: route});
@@ -71,46 +90,28 @@ class App extends Component {
       imageURL: this.state.input
     })
     console.log(this.state.input);
-   
+    app.models.predict(FACE_DETECT_MODEL, this.state.input)
+    .then(response => {
+      if(response){
+        //fetching to upadte the entries
+        fetch('http://localhost:3001/image',{
+          method: 'put',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id: this.state.user.id
+          })
+        })
+        .then(response=> response.json())
+        .then(count=>{
+          console.log(this.state.user)
+          this.setState({ ...this.state.user, entries: count })
+        })
+      }
+      this.faceBox( this.faceLocator(response) )
+    })
+    .catch(err => console.log(err))
+ }   
 
-  //applying clarify api
-  //   and this is for nodejs its a hastle to find in js pta ni mughy kya shock tha ai use krny ka
-
-  // stub.PostModelOutputs(
-  //   {
-  //       model_id: "2f4a0fb341744da4b681de01527bea9f",
-  //       version_id: "",  // This is optional. Defaults to the latest model version.
-  //       inputs: [
-  //           {data: {image: {url: "https://samples.clarifai.com/metro-north.jpg"}}}
-  //       ]
-  //   },
-  //   metadata,
-  //   (err, response) => {
-  //       if (err) {
-  //           throw new Error(err);
-  //       }
-
-  //       if (response.status.code !== 10000) {
-  //           throw new Error("Post model outputs failed, status: " + response.status.description);
-  //       }
-
-  //       // Since we have one input, one output will exist here.
-  //       const output = response.outputs[0];
-
-  //       console.log("Predicted concepts:");
-  //       for (const concept of output.data.concepts) {
-  //           console.log(concept.name + " " + concept.value);
-
-
-//Trying to use in js
-
-app.models.predict(FACE_DETECT_MODEL, this.state.input)
-.then(response => this.faceBox( this.faceLocator(response) ) )
-.catch(err => console.log(err))
-
-
-
-}          
   render(){
      return (
     <div className="App">
@@ -121,14 +122,23 @@ app.models.predict(FACE_DETECT_MODEL, this.state.input)
      {this.state.route === 'home'
        ?<div>
          <Logo />
-         <Rank />
+         <Rank
+          name={this.state.user.name} 
+          entries={this.state.user.entries}
+        />
          <ImageLinkForm onInputChange={this.onInputChange} onSubmittion={this.onSubmittion}/>
          <FaceRecogination imageURL={this.state.imageURL} box={this.state.box}/>
        </div>
        :(
          this.state.route === 'signin'
-         ?<SignIn onRouteChange={this.onRouteChange} />
-         :<Registration onRouteChange={this.onRouteChange} />
+         ?<SignIn
+            onRouteChange={this.onRouteChange}
+            loadUser={this.loadUser}
+         />
+         :<Registration
+            onRouteChange={this.onRouteChange}
+            loadUser = {this.loadUser}
+        />
        )
        
      }

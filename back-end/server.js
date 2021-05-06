@@ -1,27 +1,24 @@
 const express = require('express');
+const cors = require('cors');
+const knex = require('knex');
+
+const db = knex({
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1',
+    user : 'shazil',
+    password : 'test',
+    database : 'smart-brain'
+  }
+});
+db.select('*').from('users').then(data => {
+    console.log(data);
+});
+
 const app = express();
 
-const database = {
-    users:[
-    {
-        id:'123',
-        name:'John',
-        email:'john@gmail.com',
-        password:'cookies',
-        entries:0,
-        joined:new Date()
-    },
-    {
-        id:'124',
-        name:'Sally',
-        email:'sally@gmail.com',
-        password:'bannana',
-        entries:0,
-        joined:new Date()
-    }
-]
-}
 app.use(express.json({extended:true}));
+app.use(cors())
 
 
 app.get('/',(req,res)=>{
@@ -29,9 +26,9 @@ app.get('/',(req,res)=>{
 });
 
 
-app.post('/signin',(req,res)=>{
+app.post('/signin',(req,res)=>{ 
     if(req.body.email===database.users[0].email && req.body.password===database.users[0].password){
-        res.json('Access Granted');
+        res.json(database.users[0]);
     }else{
         res.json('Request Denied');
     }
@@ -39,29 +36,31 @@ app.post('/signin',(req,res)=>{
 
 app.post('/register',(req,res) => {
     const {name, email, password} = req.body;
-    database.users.push({
-        id: "125",
-        name: name,
+    db('users')
+    .returning('*')
+    .insert({
         email: email,
-        password: password,
-        entries: 0,
+        name: name,
         joined: new Date()
     })
-    res.json(database.users);
+    .then(user =>
+        { res.json(user[0])}
+        )
+    .catch(err => res.status(404).json(err.detail))
+    
 });
 
 app.get('/profile/:id',(req, res) => {
     const { id } = req.params;
     let found = false;
-    database.users.forEach(user => {
-        if(id === user.id){
-            found = true;
-            return res.json(user);
+    db.select('*').from('users').where({ id }).then(user => {
+        if( user.length ){
+            res.json(user[0]);
+        }else{
+            res.status(404).json("User Not Found ☹");
         }
-    });
-    if(found !== true){
-        res.status(404).json('user not found');
-    }
+        
+    })
 });
 
 app.put('/image',(req,res) => {
