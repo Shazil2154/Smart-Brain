@@ -29,7 +29,6 @@ class SignIn extends Component  {
         .then(data => {
             if(data.id){
                 this.props.loadUser(data);
-                console.log(data)
                 this.props.onRouteChange('home');
             }else{
                 alert("wrong email or password")

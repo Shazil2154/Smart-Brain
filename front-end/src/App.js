@@ -56,6 +56,10 @@ class App extends Component {
    )
  }
   faceLocator = (data) => {
+  
+    const c = data.outputs[0].data.regions.map(region => {
+      return region.region_info.bounding_box
+    })
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
     const img = document.getElementById('inputImg');
     const width = Number(img.width);
@@ -89,8 +93,8 @@ class App extends Component {
     this.setState({
       imageURL: this.state.input
     })
-    console.log(this.state.input);
-    app.models.predict(FACE_DETECT_MODEL, this.state.input)
+    app.models
+    .predict(FACE_DETECT_MODEL, this.state.input)
     .then(response => {
       if(response){
         //fetching to upadte the entries
@@ -102,9 +106,9 @@ class App extends Component {
           })
         })
         .then(response=> response.json())
-        .then(count=>{
+        .then(count =>{
+          this.setState(Object.assign(this.state.user, { entries: count}))
           console.log(this.state.user)
-          this.setState({ ...this.state.user, entries: count })
         })
       }
       this.faceBox( this.faceLocator(response) )

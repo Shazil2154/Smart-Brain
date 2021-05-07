@@ -38,7 +38,6 @@ app.post('/signin',(req,res)=>{
     .then( data => {
         let isValid= false;
         bcrypt.compare(req.body.password, data[0].hash, function(err, result) {
-                console.log(result)
                 isValid = result;
                 if( isValid ){
                     return db.select('*').from('users')
@@ -82,8 +81,6 @@ app.post('/register',(req,res) => {
              })
              .then(trx.commit)
              .catch(trx.rollback)
-        }else{
-            console.log("db login:",err)
         }
 });
     })
