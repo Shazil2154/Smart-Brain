@@ -57,9 +57,9 @@ class App extends Component {
  }
   faceLocator = (data) => {
   
-    const c = data.outputs[0].data.regions.map(region => {
-      return region.region_info.bounding_box
-    })
+    // const c = data.outputs[0].data.regions.map(region => {
+    //   return region.region_info.bounding_box
+    // })
     const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
     const img = document.getElementById('inputImg');
     const width = Number(img.width);
