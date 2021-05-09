@@ -2,6 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const knex = require('knex');
 const bcrypt = require('bcrypt');
+const register = require('./controllers/register');
+const signin = require('./controllers/signin');
+const profileGet = require('./controllers/profileGet');
+const image = require('./controllers/image')
 const saltRounds = 10;
 
 const db = knex({
@@ -32,86 +36,16 @@ app.get('/',(req,res)=>{
 });
 
 
-app.post('/signin',(req,res)=>{ 
-    db.select('email','hash').from('login')
-    .where('email','=' , req.body.email)
-    .then( data => {
-        let isValid= false;
-        bcrypt.compare(req.body.password, data[0].hash, function(err, result) {
-                isValid = result;
-                if( isValid ){
-                    return db.select('*').from('users')
-                    .where('email','=', req.body.email )
-                    .then(user => {
-                        res.json(user[0])
-                    })
-                    .catch( err => res.status(400).json('somthing went wrong'))
-                }else{
-                    res.status(400).json('wrong credentials')
-                 }
-        });
-       
-    })
-    .catch( err => res.status(400).json('wrong credentials'))
-});
+app.post('/signin',signin.handleSignin(db, bcrypt));
 
-app.post('/register',(req,res) => {
-    const {name, email, password} = req.body;
-    db.transaction(trx => {
-        bcrypt.hash(password, saltRounds, function(err, hash) {
-        if(!err){
-            trx.insert({
-                hash: hash,
-                email: email
-            })
-            .into('login')
-            .returning('email')
-            .then(loginEmail => {
-                return trx('users')
-                .returning('*')
-                .insert({
-                    email: loginEmail[0],
-                    name: name,
-                    joined: new Date()
-                })
-                .then(user => { 
-                        res.json(user[0])
-                    })
+app.post('/register',register.handleRegister(db, bcrypt, saltRounds));
 
-             })
-             .then(trx.commit)
-             .catch(trx.rollback)
-        }
-});
-    })
-      
-    .catch(err => res.status(404).json(err.detail))
-    
-});
+// the above and below are two ways of injecting dependendcies
+// the above is higher order function and below is simple function
 
-app.get('/profile/:id',(req, res) => {
-    const { id } = req.params;
-    db.select('*').from('users').where({ id }).then(user => {
-        if( user.length ){
-            res.json(user[0]);
-        }else{
-            res.status(404).json("User Not Found ☹");
-        }
-        
-    })
-});
+app.get('/profile/:id',(req, res) => {profileGet.handleProfile(req, res, db)});
 
-app.put('/image',(req,res) => {
-    const { id } = req.body;
-   db('users')
-  .where('id', '=', id)
-  .increment('entries', 1)
-  .returning('entries')
-  .then(entries => {
-      res.json(entries[0]);
-  })
-  .catch(err => res.status(400).json('unable to get entries ☹'));
-});
+app.put('/image',(req, res) => {image.handleImage(req, res, db)});
 
 
 app.listen(3001,()=>{

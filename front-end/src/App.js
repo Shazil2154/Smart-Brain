@@ -25,10 +25,7 @@ particles: {
   }
 }
 }
-class App extends Component {
-  constructor(){
-    super();
-    this.state={
+const  initialState = {
       input:'',
       imageURL:'',
       box:{},
@@ -42,6 +39,10 @@ class App extends Component {
         joined: ''
       }
     }
+class App extends Component {
+  constructor(){
+    super();
+    this.state= initialState;
   }
 
  loadUser = (data) => {
@@ -80,7 +81,7 @@ class App extends Component {
   }
   onRouteChange = (route) => {
     if(route === 'signout'){
-      this.setState({isSignedIn: false})
+      this.setState(initialState)
     }else if(route === 'home'){
       this.setState({isSignedIn: true})
     }
@@ -108,8 +109,8 @@ class App extends Component {
         .then(response=> response.json())
         .then(count =>{
           this.setState(Object.assign(this.state.user, { entries: count}))
-          console.log(this.state.user)
         })
+        .catch(console.log);
       }
       this.faceBox( this.faceLocator(response) )
     })
